@@ -3,7 +3,7 @@ import socketIOClient from "socket.io-client";
 import './App.css';
 import Message from './message.js';
 
-import {sendMessageRequest} from './services/request.handler';
+import {sendMessageRequest,loginRequest} from './services/request.handler';
 
 class App extends Component {
 	
@@ -17,10 +17,13 @@ class App extends Component {
 			endpoint: "http://127.0.0.1:4001",
 			userName: null,
 			userNameInput: null,
+			password:null,
+			passwordInput:null,
 			userId:null
 		};
 		this.handleMessageChange = this.handleMessageChange.bind(this);
 		this.handleNameChange = this.handleNameChange.bind(this);
+		this.handlePasswordChange = this.handlePasswordChange.bind(this);
 		this.handleClick = this.handleClick.bind(this);
 	}
 	
@@ -78,8 +81,30 @@ class App extends Component {
 		const userNameInput = value;
 								
 		this.setState( { userNameInput: userNameInput },()=>{
-			
+			console.log('Username',this.state.userNameInput);
 		} );		
+	}
+	handlePasswordChange(event){
+		const target = event.target;
+		const value = target.type === 'checkbox' ? target.checked : target.value;
+		
+		const passwordInput = value;
+								
+		this.setState( { passwordInput: passwordInput },()=>{
+			console.log('Username',this.state.passwordInput);
+		} );		
+	}
+	
+	authenticate(){
+		loginRequest( this.state.userNameInput,this.state.passwordInput )
+			.then( (res)=> {
+				console.log(res);
+				//let input = document.getElementById('messageInput');
+				//input.value = '';
+			})
+			.catch( (err)=> {
+				console.log(err);
+			});
 	}
 	
 	setName(){
@@ -120,11 +145,20 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
 				{ !this.state.userName &&
-				<div>
+				/*<div>
 					<div className="input-group mb-3">
 					  <input type="text" className="form-control" onChange={this.handleNameChange} placeholder="Urername" aria-label="Urername" aria-describedby="username"/>
 					  <div className="input-group-append">
 						<button className="btn btn-outline-secondary" type="button" id="send-btn" onClick={()=> this.setName() }>Save name</button>
+					  </div>
+					</div>
+				</div>*/
+				<div>
+					<div className="input-group mb-3">
+					  <input type="text" className="form-control" onChange={this.handleNameChange} placeholder="Username" aria-label="Username" aria-describedby="username"/>
+					  <input type="password" className="form-control" onChange={this.handlePasswordChange} placeholder="Password" aria-label="Password" aria-describedby="password"/>
+					  <div className="input-group-append">
+						<button className="btn btn-outline-secondary" type="button" id="send-btn" onClick={()=> this.authenticate() }>Login</button>
 					  </div>
 					</div>
 				</div>

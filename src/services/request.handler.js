@@ -21,7 +21,6 @@ const options = {
 		time:'',
 		name:''
 	}},
-
 };
 
 export const sendMessageRequest = (message, time, name, userId) => {
@@ -31,4 +30,23 @@ export const sendMessageRequest = (message, time, name, userId) => {
 		options.qs.userId = userId;
 		console.log(options.params);
 		return RequestPromiseNative(options);
-	};
+};
+
+export const loginRequest = ( userName,password) => {		
+		let reqOptions = {
+			uri:`${options.uri}user/login`,
+			method:'POST',
+			headers: {
+				'User-Agent': 'Request-Promise',
+				'Content-Type': 'Application/json',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Credentials': 'false'
+			},
+			json: true ,// Automatically parses the JSON string in the response
+			body:{				
+				username:userName,
+				password:password
+			},
+		};
+		return RequestPromiseNative(reqOptions);
+};
