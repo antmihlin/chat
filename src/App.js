@@ -3,7 +3,10 @@ import socketIOClient from "socket.io-client";
 import './App.css';
 import Message from './message.js';
 
+//import {config} from './config';
+
 import {sendMessageRequest,loginRequest} from './services/request.handler';
+import {getAllGroups,createGroup} from './services/group.handler';
 
 class App extends Component {
 	
@@ -13,13 +16,16 @@ class App extends Component {
 		this.state = {
 			messages: [],
 			currentMessage:{},
+			currentGroup:null,
 			response: false,
 			endpoint: "http://127.0.0.1:4001",
 			userName: null,
 			userNameInput: null,
 			password:null,
 			passwordInput:null,
-			userId:null
+			userId:null,
+			token:null,
+			email:null
 		};
 		this.handleMessageChange = this.handleMessageChange.bind(this);
 		this.handleNameChange = this.handleNameChange.bind(this);
@@ -28,12 +34,56 @@ class App extends Component {
 	}
 	
 	componentDidMount() {
+
+	}
+	
+	logout(){
+		this.setState({
+			messages: [],
+			currentMessage:{},
+			currentGroup:null,
+			response: false,
+			userName: null,
+			userNameInput: null,
+			password:null,
+			passwordInput:null,
+			userId:null,
+			token:null,
+			email:null,
+			socket:null
+		});
+	}
+	
+	/*
+	 * TODO
+	 * send message by group	
+	 */
+	startMessagesSocket(){
 		const { endpoint } = this.state;
 		const socket = socketIOClient(endpoint);
-		socket.on("FromAPI", data => { 
-			this.setState({ messages: data });
+		this.setState({socket:socket});
+		socket.on("message", data => { 
+			this.setState({ messages: data.message });
 			if(document.querySelector(".chat__messages"))window.scrollTo(0,document.querySelector(".chat__messages").scrollHeight);
 		});
+		
+		socket.emit('subscribe','1');
+	}
+
+	getGroups(){
+		
+	}
+	
+	createGroup(){
+		
+	}
+	
+	chooseGroup(){
+		
+	}
+	
+	closeGroup(){
+		
 	}
 	
 	sendMessage(){
@@ -41,6 +91,20 @@ class App extends Component {
 		let time = this.state.currentMessage.time;
 		let name = this.state.currentMessage.name;
 		let userId = this.state.currentMessage.userId;
+		let room = '1';
+		
+		//const { endpoint } = this.state;
+		const socket = this.state.socket;
+		console.log('Sending message...');
+		socket.emit('send', { room: room, message: {
+			text:message,
+			time,
+			name,
+			userId
+		} });
+		
+		//socket.emit('send', { room: room, message: message });
+		/*
 		sendMessageRequest( message, time, name, userId )
 			.then( (res)=> {
 				console.log(res);
@@ -50,6 +114,7 @@ class App extends Component {
 			.catch( (err)=> {
 				console.log(err);
 			});
+		*/
 	}
 	
 	handleClick(){
@@ -98,38 +163,16 @@ class App extends Component {
 	authenticate(){
 		loginRequest( this.state.userNameInput,this.state.passwordInput )
 			.then( (res)=> {
-				console.log(res);
-				//let input = document.getElementById('messageInput');
-				//input.value = '';
+				this.setState({userId:res.id,userName:res.nickName,email:res.username,token:res.token},()=>{
+					this.startMessagesSocket();
+				});				
 			})
 			.catch( (err)=> {
+				this.logout();
 				console.log(err);
 			});
 	}
-	
-	setName(){
-		let name = this.state.userNameInput.split('');
-		let nameSize = name.length;
-		
-		if(nameSize> 3)  {
-			let userId = this.state.userNameInput+this.makeid();
-			this.setState({
-				userName:this.state.userNameInput,
-				userId: userId
-			});
-		} 
-	}
-	
-	makeid(){
-		let text = "";
-		let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-		for (let i = 0; i < 5; i++)
-		  text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-		return text;
-	}
-	
   render() {
 	  
 	let messages = this.state.messages;
@@ -138,21 +181,12 @@ class App extends Component {
 
 	for(let m in messages){
 		elements.push(<Message key={m} index={m} message={messages[m]} user={this.state.userId} />	);
-
 	}
-	  
+
     return (
       <div className="App">
         <header className="App-header">
 				{ !this.state.userName &&
-				/*<div>
-					<div className="input-group mb-3">
-					  <input type="text" className="form-control" onChange={this.handleNameChange} placeholder="Urername" aria-label="Urername" aria-describedby="username"/>
-					  <div className="input-group-append">
-						<button className="btn btn-outline-secondary" type="button" id="send-btn" onClick={()=> this.setName() }>Save name</button>
-					  </div>
-					</div>
-				</div>*/
 				<div>
 					<div className="input-group mb-3">
 					  <input type="text" className="form-control" onChange={this.handleNameChange} placeholder="Username" aria-label="Username" aria-describedby="username"/>
