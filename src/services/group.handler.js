@@ -7,14 +7,14 @@ export const getAllGroups = (userId,token)=>{
 		uri: `${config.uri}group/`,
 		method: 'GET',
 		qs: {
-			access_token: token,
 			userId
 		},
 		headers: {
 			'User-Agent': 'Request-Promise',
 			'Content-Type': 'Application/json',
 			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Credentials': 'false'
+			'Access-Control-Allow-Credentials': 'false',
+			'Authorization': `Bearer ${token}`
 		},
 		json: true ,// Automatically parses the JSON string in the response
 		body:{	params:{

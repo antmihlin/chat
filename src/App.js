@@ -17,6 +17,7 @@ class App extends Component {
 			messages: [],
 			currentMessage:{},
 			currentGroup:null,
+			groups:[],
 			response: false,
 			endpoint: "http://127.0.0.1:4001",
 			userName: null,
@@ -31,10 +32,11 @@ class App extends Component {
 		this.handleNameChange = this.handleNameChange.bind(this);
 		this.handlePasswordChange = this.handlePasswordChange.bind(this);
 		this.handleClick = this.handleClick.bind(this);
+		this.handleGroupChoice = this.handleGroupChoice.bind(this);
 	}
 	
 	componentDidMount() {
-
+		
 	}
 	
 	logout(){
@@ -42,6 +44,7 @@ class App extends Component {
 			messages: [],
 			currentMessage:{},
 			currentGroup:null,
+			groups:[],
 			response: false,
 			userName: null,
 			userNameInput: null,
@@ -62,16 +65,26 @@ class App extends Component {
 		const { endpoint } = this.state;
 		const socket = socketIOClient(endpoint);
 		this.setState({socket:socket});
-		socket.on("message", data => { 
-			this.setState({ messages: data.message });
+		socket.on("send", data => { 
+			let messages = this.state.messages;
+			messages.push(data.message);
+			this.setState({ messages });
+			console.log(data);
 			if(document.querySelector(".chat__messages"))window.scrollTo(0,document.querySelector(".chat__messages").scrollHeight);
 		});
 		
-		socket.emit('subscribe','1');
+		socket.emit('subscribe',this.state.currentGroup);
 	}
 
 	getGroups(){
-		
+		getAllGroups( this.state.userId ,this.state.token )
+			.then( (res)=> {
+				console.log(res);
+				this.setState({groups:res.value});
+			})
+			.catch( (err)=> {
+				console.log(err);
+			});
 	}
 	
 	createGroup(){
@@ -91,7 +104,7 @@ class App extends Component {
 		let time = this.state.currentMessage.time;
 		let name = this.state.currentMessage.name;
 		let userId = this.state.currentMessage.userId;
-		let room = '1';
+		let room = this.state.currentGroup;
 		
 		//const { endpoint } = this.state;
 		const socket = this.state.socket;
@@ -125,6 +138,15 @@ class App extends Component {
 		console.log(messages);
 	}
 	
+	handleGroupChoice(event){
+		const target = event.target;
+		const value = target.type === 'checkbox' ? target.checked : target.value;
+		
+		this.setState({currentGroup:value},()=>{
+			this.startMessagesSocket();
+		});
+	}
+	
 	handleMessageChange(event){
 		const target = event.target;
 		const value = target.type === 'checkbox' ? target.checked : target.value;
@@ -146,7 +168,7 @@ class App extends Component {
 		const userNameInput = value;
 								
 		this.setState( { userNameInput: userNameInput },()=>{
-			console.log('Username',this.state.userNameInput);
+			
 		} );		
 	}
 	handlePasswordChange(event){
@@ -156,7 +178,7 @@ class App extends Component {
 		const passwordInput = value;
 								
 		this.setState( { passwordInput: passwordInput },()=>{
-			console.log('Username',this.state.passwordInput);
+			
 		} );		
 	}
 	
@@ -164,7 +186,8 @@ class App extends Component {
 		loginRequest( this.state.userNameInput,this.state.passwordInput )
 			.then( (res)=> {
 				this.setState({userId:res.id,userName:res.nickName,email:res.username,token:res.token},()=>{
-					this.startMessagesSocket();
+					
+					this.getGroups();
 				});				
 			})
 			.catch( (err)=> {
@@ -176,11 +199,18 @@ class App extends Component {
   render() {
 	  
 	let messages = this.state.messages;
+	let groups = this.state.groups;
 	
 	let elements = [];
 
 	for(let m in messages){
 		elements.push(<Message key={m} index={m} message={messages[m]} user={this.state.userId} />	);
+	}
+	
+	let groupsElements = [];
+	
+	for(let g in groups){
+		groupsElements.push(<option key={g} index={g} value={groups[g]._id}>{groups[g].title}</option>);
 	}
 
     return (
@@ -197,7 +227,18 @@ class App extends Component {
 					</div>
 				</div>
 				}
-				{ this.state.userName &&
+				{ this.state.userName && !this.state.currentGroup &&
+				<div>
+					<div className="form-group">
+					  <label htmlFor="chooseGroup">Select group</label>
+					  <select className="form-control" onChange={this.handleGroupChoice} id="chooseGroup">
+						<option>Choose group</option>
+						{groupsElements}
+					  </select>
+					</div>
+				</div>	
+				}
+				{ this.state.userName && this.state.currentGroup &&
 				<div className="chat container-fluid">
 				
 					<div className="chat__messages row align-items-end">							
@@ -211,7 +252,7 @@ class App extends Component {
 						  </div>
 						</div>
 					</div>
-				</div>
+				</div>				
 				}
         </header>
       </div>

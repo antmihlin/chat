@@ -39,7 +39,7 @@ class Message extends Component {
 								</div>
 							</div>
 							<div className="text-left">
-								{this.state.message.message}
+								{this.state.message.text}
 							</div>
 
 						</div>		

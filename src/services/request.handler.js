@@ -16,7 +16,7 @@ import {config} from '../config';
 //Send message
 export const sendMessageRequest = (message, time, name, userId,groupId) => {
 	const options = {
-		uri: `http://localhost:4001/send/1`,
+		uri: `http://localhost:4001/send/${groupId}`,
 		method: 'POST',
 		qs: {
 			//access_token: 'xxxxx xxxxx' // -> uri + '?access_token=xxxxx%20xxxxx'
