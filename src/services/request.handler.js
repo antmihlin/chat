@@ -63,3 +63,20 @@ export const loginRequest = ( userName,password) => {
 		};
 		return RequestPromiseNative(reqOptions);
 };
+export const logoutRequest = ( userName) => {		
+		let reqOptions = {
+			uri:`${config.uri}user/logout`,
+			method:'POST',
+			headers: {
+				'User-Agent': 'Request-Promise',
+				'Content-Type': 'Application/json',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Credentials': 'false'
+			},
+			json: true ,// Automatically parses the JSON string in the response
+			body:{				
+				username:userName
+			},
+		};
+		return RequestPromiseNative(reqOptions);
+};

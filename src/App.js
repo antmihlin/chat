@@ -6,7 +6,8 @@ import Message from './message.js';
 //import {config} from './config';
 
 import {sendMessageRequest,loginRequest} from './services/request.handler';
-import {getAllGroups,createGroup} from './services/group.handler';
+import {getAllGroups,createGroup,getAllUsers} from './services/group.handler';
+import {getCookie} from './services/cookie.handler';
 
 class App extends Component {
 	
@@ -26,7 +27,8 @@ class App extends Component {
 			passwordInput:null,
 			userId:null,
 			token:null,
-			email:null
+			email:null,
+			users:[]
 		};
 		this.handleMessageChange = this.handleMessageChange.bind(this);
 		this.handleNameChange = this.handleNameChange.bind(this);
@@ -36,27 +38,9 @@ class App extends Component {
 	}
 	
 	componentDidMount() {
+		this.checkAuth();
+	}
 		
-	}
-	
-	logout(){
-		this.setState({
-			messages: [],
-			currentMessage:{},
-			currentGroup:null,
-			groups:[],
-			response: false,
-			userName: null,
-			userNameInput: null,
-			password:null,
-			passwordInput:null,
-			userId:null,
-			token:null,
-			email:null,
-			socket:null
-		});
-	}
-	
 	/*
 	 * TODO
 	 * send message by group	
@@ -81,6 +65,18 @@ class App extends Component {
 			.then( (res)=> {
 				console.log(res);
 				this.setState({groups:res.value});
+			})
+			.catch( (err)=> {
+				console.log(err);
+			});
+	}
+	getUsers(){
+		getAllUsers( this.state.userId ,this.state.token )
+			.then( (res)=> {
+				console.log('Users');
+				console.log(res.value);
+				console.log('---------------------');
+				this.setState({users:res.value});
 			})
 			.catch( (err)=> {
 				console.log(err);
@@ -186,14 +182,57 @@ class App extends Component {
 		loginRequest( this.state.userNameInput,this.state.passwordInput )
 			.then( (res)=> {
 				this.setState({userId:res.id,userName:res.nickName,email:res.username,token:res.token},()=>{
-					
+
 					this.getGroups();
+					this.getUsers();
+					document.cookie = `userId=${res.id}`;
+					document.cookie = `userName=${res.nickName}`;
+					document.cookie = `email=${res.username}`;
+					document.cookie = `token=${res.token}`;
 				});				
 			})
 			.catch( (err)=> {
 				this.logout();
 				console.log(err);
 			});
+	}
+	
+	checkAuth(){		
+		if(getCookie('token').length > 0  && getCookie('userId').length > 0  ){
+			this.setState({
+				userId:getCookie('userId'),
+				userName:getCookie('userName'),
+				email:getCookie('email'),
+				token:getCookie('token')
+			},()=>{
+				this.getGroups();
+				this.getUsers();
+			});	
+		}
+	};
+	
+	logout(){
+		this.setState({
+			messages: [],
+			currentMessage:{},
+			currentGroup:null,
+			groups:[],
+			response: false,
+			userName: null,
+			userNameInput: null,
+			password:null,
+			passwordInput:null,
+			userId:null,
+			token:null,
+			email:null,
+			socket:null,
+			users:[]
+		});
+
+		document.cookie = `userId=`;
+		document.cookie = `userName=`;
+		document.cookie = `email=`;
+		document.cookie = `token=`;
 	}
 
   render() {
@@ -236,6 +275,11 @@ class App extends Component {
 						{groupsElements}
 					  </select>
 					</div>
+					<div className="input-group mb-3">
+					  <div className="input-group-append">
+						<button className="btn btn-outline-secondary" type="button" id="logout-btn" onClick={()=> this.logout() }>Logout</button>
+					  </div>
+					</div>
 				</div>	
 				}
 				{ this.state.userName && this.state.currentGroup &&
@@ -249,6 +293,11 @@ class App extends Component {
 						  <input id="messageInput" type="text" className="form-control" onChange={this.handleMessageChange} placeholder="message" aria-label="message" aria-describedby="send-btn"/>
 						  <div className="input-group-append">
 							<button className="btn btn-outline-secondary" type="button" id="send-btn" onClick={()=> this.sendMessage() }>Button</button>
+						  </div>
+						</div>
+						<div className="input-group mb-3">
+						  <div className="input-group-append">
+							<button className="btn btn-outline-secondary" type="button" id="logout-btn" onClick={()=> this.logout() }>Logout</button>
 						  </div>
 						</div>
 					</div>
