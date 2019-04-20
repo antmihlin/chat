@@ -1,7 +1,7 @@
-/* 
+/*
  * General config
  */
 
 export const config = {
-	uri: `http://localhost:4001/`
+  uri: `http://localhost:4001/`
 };
