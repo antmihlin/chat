@@ -45,8 +45,6 @@ class App extends Component {
   }
 
   /*
-   * TODO
-   * send message by group
    */
   startMessagesSocket() {
     const { endpoint } = this.state;

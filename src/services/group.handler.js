@@ -56,6 +56,10 @@ export const createGroup = (usersList, groupTitle, publicAccess, token) => {
   return RequestPromiseNative(options);
 };
 
+/*
+TODO
+Get users only from contacts
+*/
 export const getAllUsers = (userId, token) => {
   const options = {
     uri: `${config.uri}user/`,
