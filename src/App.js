@@ -363,7 +363,7 @@ class App extends Component {
                       id="send-btn"
                       onClick={() => this.sendMessage()}
                     >
-                      Button
+                      Send
                     </button>
                   </div>
                 </div>
